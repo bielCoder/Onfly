@@ -17,6 +17,7 @@ Route::middleware('auth:api')->group(function () {
         Route::controller(TravelController::class)->group(function () {
             Route::get('/', 'index');
             Route::get('/{id}', 'show');
+            Route::delete('/{id}','destroy');
 
         });
     });

@@ -25,7 +25,7 @@ class TravelController extends Controller
     {
         try {
             // return travellings
-            $travellings = $this -> travellings -> paginate($request -> per_page ?? 10);
+            $travellings = $this -> travellings -> where('status',true) -> paginate($request -> per_page ?? 10);
             if($travellings -> total() === 0)
             {
                 return $this -> response -> error("travellings",$request->header('Content-Type'),strtoupper($request->method()),"Nenhuma viagem encontrada",404);
@@ -87,8 +87,27 @@ class TravelController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request,string $id)
     {
-        //
+        try {
+
+            $travelling = $this -> travellings -> find($id);
+               if(!$travelling)
+                {
+                    return $this -> response -> error("travellings",$request->header('Content-Type'),strtoupper($request->method()),"Nenhuma viagem encontrada",404);
+                }
+
+                $this -> travellings -> where('id',$id) -> update([
+                    "status" => false
+                ]);
+
+                 return $this -> response -> format("travellings",$request->header('Content-Type'),strtoupper($request->method()),$travelling,null,"Viagem foi removida.",200);
+        } catch(\Exception $e)
+        {
+            return $this -> response -> error("travellings",$request->header('Content-Type'),strtoupper($request->method()),$e -> getMessage(),500);
+        } catch(\PDOException $e)
+        {
+            return $this -> response -> error("travellings",$request->header('Content-Type'),strtoupper($request->method()),$e -> getMessage(),500);
+        }
     }
 }

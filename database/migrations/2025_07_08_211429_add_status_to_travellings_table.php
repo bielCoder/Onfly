@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('travellings', function (Blueprint $table) {
             if (!Schema::hasColumn('travellings', 'status')) {
-                $table->integer('status')-> after('company')->nullable();
+                $table->boolean('status')-> after('company')->nullable();
             }
         });
     }
