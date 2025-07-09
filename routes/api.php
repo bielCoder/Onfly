@@ -4,6 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TravelController;
+use App\Http\Controllers\OrderController;
+
 
 // Rotas protegidas via JWT
 Route::middleware('auth:api')->group(function () {
@@ -20,6 +22,13 @@ Route::middleware('auth:api')->group(function () {
             Route::delete('/{id}','destroy');
 
         });
+    });
+
+    Route::prefix('order') ->group(function () {
+         Route::controller(OrderController::class)->group(function () {
+            Route::get('','index');
+            Route::put('change','changeStatus');
+         });
     });
 });
 

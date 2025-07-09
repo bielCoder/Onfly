@@ -19,7 +19,7 @@ return new class extends Migration
             $table->timestamp('return_date')->nullable();
             $table->string('status');
             $table->foreign('user_id') -> references('id') -> on('users');
-            $table->foreign('travelling_id') -> references('id') -> on('travelling');
+            $table->foreign('travelling_id') -> references('id') -> on('travellings');
             $table->timestamps();
         });
     }

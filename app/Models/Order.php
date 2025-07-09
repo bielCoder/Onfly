@@ -11,7 +11,7 @@ class Order extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function travel()
+    public function travellings()
     {
         return $this->belongsTo(Travel::class);
     }
