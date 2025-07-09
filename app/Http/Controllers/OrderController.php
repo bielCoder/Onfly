@@ -8,7 +8,7 @@ use App\Classes\Utilities\Response;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Mail;
 // use App\Notifications\NotifyGmail;
-use App\Mail\NotifyGmail;
+use App\Mail\{NotifyGmail, NotifyClearGmail};
 use App\Models\User;
 
 class OrderController extends Controller
@@ -144,7 +144,17 @@ class OrderController extends Controller
                  return $this -> response -> error("order",$request->header('Content-Type'),strtoupper($request->method()),"E-mail de usuário não encontrado",404);
             }
 
-           Mail::to($user -> email)->send(new NotifyGmail($user -> email, $request -> status, $user -> name));
+            //Aqui foi implementado para automatizar o cancelamento de pedido automatico caso tenha sido reprovado se necessário
+
+            // if($request -> status !== 'aprovado')
+            // {
+            //      $this -> order -> where('user_id',$request -> user_id) -> where('travelling_id',$request -> travelling_id) -> update([
+            //         "active" => false
+            //      ]);
+            // }
+
+
+            Mail::to($user -> email)->send(new NotifyGmail($user -> email, $request -> status, $user -> name));
 
             $this -> order -> where('user_id',$request -> user_id) -> where('travelling_id',$request -> travelling_id) -> update([
                 "status" => $request -> status
@@ -159,6 +169,39 @@ class OrderController extends Controller
         }
 
 
+    }
+
+
+
+    public function clear(Request $request)
+    {
+          try {
+
+
+              $order =  $this -> order -> where('user_id',$request -> user_id) -> where('travelling_id',$request -> travelling_id) -> first();
+
+              if($order -> status !== 'aprovado')
+              {
+                 $user = $this -> user -> where('id',$request -> user_id) -> first();
+                 $this -> order -> where('user_id',$request -> user_id) -> where('travelling_id',$request -> travelling_id) -> update([
+                    "active" => false
+                 ]);
+
+                Mail::to($user -> email)->send(new NotifyClearGmail($user -> email, $request -> status, $user -> name));
+                return $this -> response -> format("order",$request->header('Content-Type'),strtoupper($request->method()),null,null,"Pedido cancelado.",200);
+
+              }
+
+                return $this -> response -> error("order",$request->header('Content-Type'),strtoupper($request->method()),"Pedido já foi aprovado não é possível seu cancelamento",400);
+
+
+        } catch(\Exception $e)
+        {
+              return $this -> response -> error("order",$request->header('Content-Type'),strtoupper($request->method()),$e -> getMessage(),500);
+        } catch(\PDOException $e)
+        {
+              return $this -> response -> error("order",$request->header('Content-Type'),strtoupper($request->method()),$e -> getMessage(),500);
+        }
     }
 
 

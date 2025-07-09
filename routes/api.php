@@ -28,6 +28,7 @@ Route::middleware('auth:api')->group(function () {
          Route::controller(OrderController::class)->group(function () {
             Route::get('','index');
             Route::put('change','changeStatus');
+            Route::delete('clear','clear');
          });
     });
 });

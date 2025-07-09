@@ -10,7 +10,7 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Mail\Mailables\Address;
 use Illuminate\Queue\SerializesModels;
 
-class NotifyGmail extends Mailable
+class NotifyClearGmail extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -47,7 +47,7 @@ class NotifyGmail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'approve',
+            view: 'clear',
             with:['status' => $this -> status, 'name' => $this -> name]
         );
     }
