@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('travelling_id');
-            $table->timestamp('departure_date')->nullable();
-            $table->timestamp('return_date')->nullable();
+            $table->timestamp('departure_date')->nullable(false);
+            $table->timestamp('return_date')->nullable(false);
             $table->string('status');
             $table->foreign('user_id') -> references('id') -> on('users');
             $table->foreign('travelling_id') -> references('id') -> on('travellings');

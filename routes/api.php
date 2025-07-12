@@ -38,6 +38,7 @@ Route::prefix('auth')->group(function () {
         // Rotas públicas
         Route::post('/register', 'register');
         Route::post('/login', 'login');
+        Route::post('/check','checkToken');
     });
 });
 

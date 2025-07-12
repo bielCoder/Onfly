@@ -6,32 +6,40 @@ use App\Classes\Utilities\Response;
 use App\Http\Requests\AuthRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\User;
+use App\Models\{User,Token};
+use App\Classes\Utilities\AuthCode;
+use App\Mail\NotifyTokenGmail;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Mail;
 
 class AuthController extends Controller
 {
     private $response;
+    private $authCode;
+    private $token;
 
-    public function __construct(Response $response)
+    public function __construct(Response $response, AuthCode $authCode, Token $token)
     {
         $this -> response = $response;
+        $this -> authCode = $authCode;
+        $this -> token = $token;
     }
 
     public function register(AuthRequest $request)
     {
+
+
        try{
-             $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'access' => $request -> access
+        $data = $this -> token -> create([
+            "token" => $this -> authCode -> random()
         ]);
 
-        $token = JWTAuth::fromUser($user);
 
-        return $this -> response -> format("auth",$request->header('Content-Type'),strtoupper($request->method()),compact('user', 'token'),null,"Usuário registrado com sucesso",202);
+        Mail::to($request->email)->send(new NotifyTokenGmail($request -> name,  $data -> token));
+
+        return $this -> response ->format("token",$request->header('Content-Type'),strtoupper($request->method()),true,$data -> token,"Token registrado com sucesso.",202);
+
        } catch(\Exception $e)
        {
             return $this -> response -> error("auth",$request->header('Content-Type'),strtoupper($request->method()),$e -> getMessage(),500);
@@ -73,4 +81,20 @@ class AuthController extends Controller
 
 
     }
+
+    public function checkToken(Request $request)
+    {
+         $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'access' => $request -> access
+        ]);
+        $this -> token -> where('token',$request -> token) -> update([
+            "confirmed" => true
+        ]);
+        $token = JWTAuth::fromUser($user);
+        return $this -> response -> format("auth",$request->header('Content-Type'),strtoupper($request->method()),compact('user', 'token'),null,"Usuário registrado com sucesso",202);
+    }
+
 }

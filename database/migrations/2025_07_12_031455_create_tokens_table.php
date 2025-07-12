@@ -11,10 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('travellings', function (Blueprint $table) {
+        Schema::create('tokens', function (Blueprint $table) {
             $table->id();
-            $table->string('city')->nullable(false);
-            $table->string('company')->nullable(false);
+            $table->integer('token') -> nullable(false);
             $table->timestamps();
         });
     }
@@ -24,6 +23,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('travellings');
+        Schema::dropIfExists('tokens');
     }
 };
