@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
  */
 class TravelFactory extends Factory
 {
+
     /**
      * Define the model's default state.
      *
@@ -17,7 +18,8 @@ class TravelFactory extends Factory
     public function definition(): array
     {
          return [
-            'name' => $this->faker->city(),
+            'city' => $this->faker->city(),
+            'company' => $this->faker->company(),
             'status' => true,
         ];
     }

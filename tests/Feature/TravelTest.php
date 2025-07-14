@@ -9,15 +9,21 @@ use Tests\TestCase;
 
 class TravelTest extends TestCase
 {
-    use RefreshDatabase;
+    // use RefreshDatabase;
 
     public function test_list_travellings()
     {
-        Travel::factory()->create();
+        $this->withoutExceptionHandling();
+        /** @var \App\Models\User $user */
+        $user = \App\Models\User::factory()->create();
+        $this->actingAs($user, 'api');
+
+        Travel::factory()->count(5)->create();
 
         $response = $this->getJson('/api/travellings');
 
         $response->assertStatus(200);
+
         $response->assertJsonStructure([
             'travellings' => [
                 'header' => ['content-type', 'method'],
@@ -28,21 +34,32 @@ class TravelTest extends TestCase
                 'status'
             ]
         ]);
+
+        $this->assertGreaterThanOrEqual(5, count($response->json()['travellings']['data']['data']));
     }
 
     public function test_show_travel()
     {
+        $this->withoutExceptionHandling();
+        /** @var \App\Models\User $user */
+
+        $user = \App\Models\User::factory()->create();
+
+        $this->actingAs($user, 'api');
+
         $travel = Travel::factory()->create();
 
         $response = $this->getJson('/api/travellings/'.$travel->id);
 
         $response->assertStatus(200);
+
         $response->assertJsonStructure([
             'travellings' => [
                 'header' => ['content-type', 'method'],
                 'data' => [
                     'id',
-                    'name',
+                    'city',
+                    'company',
                     'status'
                 ],
                 'status'
@@ -52,11 +69,18 @@ class TravelTest extends TestCase
 
     public function test_destroy_travel()
     {
+        $this->withoutExceptionHandling();
+        /** @var \App\Models\User $user */
+
+        $user = \App\Models\User::factory()->create();
+        $this->actingAs($user, 'api');
+
         $travel = Travel::factory()->create();
 
         $response = $this->deleteJson('/api/travellings/'.$travel->id);
 
         $response->assertStatus(200);
+
         $response->assertJsonStructure([
             'travellings' => [
                 'header' => ['content-type', 'method'],
@@ -64,6 +88,11 @@ class TravelTest extends TestCase
                 'message',
                 'status'
             ]
+        ]);
+
+        $this->assertDatabaseHas('travellings', [
+            'id' => $travel->id,
+            'status' => false
         ]);
     }
 }

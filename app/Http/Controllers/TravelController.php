@@ -8,14 +8,13 @@ use Illuminate\Http\Request;
 
 class TravelController extends Controller
 {
-
     private $response;
     private $travellings;
 
     public function __construct(Response $response, Travel $travellings)
     {
-        $this -> response = $response;
-        $this -> travellings = $travellings;
+        $this->response = $response;
+        $this->travellings = $travellings;
     }
 
     /**
@@ -24,25 +23,17 @@ class TravelController extends Controller
     public function index(Request $request)
     {
         try {
-            // return travellings
-            $travellings = $this -> travellings -> where('status',true) -> paginate($request -> per_page ?? 10);
-            if($travellings -> total() === 0)
-            {
-                return $this -> response -> error("travellings",$request->header('Content-Type'),strtoupper($request->method()),"Nenhuma viagem encontrada",404);
+            $travellings = $this->travellings->where('status', true)->paginate($request->per_page ?? 10);
+
+            if ($travellings->total() === 0) {
+                return $this->response->error("travellings", $request->header('Content-Type'), strtoupper($request->method()), "Nenhuma viagem encontrada", 404);
             }
-            return $this -> response -> format("travellings",$request->header('Content-Type'),strtoupper($request->method()),$travellings,null,null,200);
 
+            return $this->response->format("travellings", $request->header('Content-Type'), strtoupper($request->method()), $travellings, null, null, 200);
 
-
-        } catch(\Exception $e)
-        {
-            return $this -> response -> error("travellings",$request->header('Content-Type'),strtoupper($request->method()),$e -> getMessage(),500);
-        } catch(\PDOException $e)
-        {
-            return $this -> response -> error("travellings",$request->header('Content-Type'),strtoupper($request->method()),$e -> getMessage(),500);
+        } catch (\Exception $e) {
+            return $this->response->error("travellings", $request->header('Content-Type'), strtoupper($request->method()), $e->getMessage(), 500);
         }
-
-
     }
 
     /**
@@ -50,29 +41,41 @@ class TravelController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $request->validate([
+                'city' => 'required|string',
+                'company' => 'required|string',
+            ]);
+
+            $travelling = $this->travellings->create([
+                'city' => $request->city,
+                'company' => $request->company,
+                'status' => true,
+            ]);
+
+            return $this->response->format("travellings", $request->header('Content-Type'), strtoupper($request->method()), $travelling, null, "Viagem cadastrada com sucesso.", 201);
+
+        } catch (\Exception $e) {
+            return $this->response->error("travellings", $request->header('Content-Type'), strtoupper($request->method()), $e->getMessage(), 500);
+        }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Request $request,int $id)
+    public function show(Request $request, int $id)
     {
-         try {
+        try {
+            $travelling = $this->travellings->find($id);
 
-            $travelling = $this -> travellings -> find($id);
-               if(!$travelling)
-                {
-                    return $this -> response -> error("travellings",$request->header('Content-Type'),strtoupper($request->method()),"Nenhuma viagem encontrada",404);
-                }
-                    return $this -> response -> format("travellings",$request->header('Content-Type'),strtoupper($request->method()),$travelling,null,null,200);
+            if (!$travelling) {
+                return $this->response->error("travellings", $request->header('Content-Type'), strtoupper($request->method()), "Nenhuma viagem encontrada", 404);
+            }
 
-        } catch(\Exception $e)
-        {
-            return $this -> response -> error("travellings",$request->header('Content-Type'),strtoupper($request->method()),$e -> getMessage(),500);
-        } catch(\PDOException $e)
-        {
-            return $this -> response -> error("travellings",$request->header('Content-Type'),strtoupper($request->method()),$e -> getMessage(),500);
+            return $this->response->format("travellings", $request->header('Content-Type'), strtoupper($request->method()), $travelling, null, null, 200);
+
+        } catch (\Exception $e) {
+            return $this->response->error("travellings", $request->header('Content-Type'), strtoupper($request->method()), $e->getMessage(), 500);
         }
     }
 
@@ -81,33 +84,48 @@ class TravelController extends Controller
      */
     public function update(Request $request, int $id)
     {
-        //
+        try {
+            $request->validate([
+                'city' => 'nullable|string',
+                'company' => 'nullable|string',
+                'status' => 'nullable|boolean',
+            ]);
+
+            $travelling = $this->travellings->find($id);
+
+            if (!$travelling) {
+                return $this->response->error("travellings", $request->header('Content-Type'), strtoupper($request->method()), "Nenhuma viagem encontrada", 404);
+            }
+
+            $travelling->update($request->only(['city', 'company', 'status']));
+
+            return $this->response->format("travellings", $request->header('Content-Type'), strtoupper($request->method()), $travelling, null, "Viagem atualizada com sucesso.", 200);
+
+        } catch (\Exception $e) {
+            return $this->response->error("travellings", $request->header('Content-Type'), strtoupper($request->method()), $e->getMessage(), 500);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Request $request,string $id)
+    public function destroy(Request $request, string $id)
     {
         try {
+            $travelling = $this->travellings->find($id);
 
-            $travelling = $this -> travellings -> find($id);
-               if(!$travelling)
-                {
-                    return $this -> response -> error("travellings",$request->header('Content-Type'),strtoupper($request->method()),"Nenhuma viagem encontrada",404);
-                }
+            if (!$travelling) {
+                return $this->response->error("travellings", $request->header('Content-Type'), strtoupper($request->method()), "Nenhuma viagem encontrada", 404);
+            }
 
-                $this -> travellings -> where('id',$id) -> update([
-                    "status" => false
-                ]);
+            $this->travellings->where('id', $id)->update([
+                "status" => false
+            ]);
 
-                 return $this -> response -> format("travellings",$request->header('Content-Type'),strtoupper($request->method()),$travelling,null,"Viagem foi removida.",200);
-        } catch(\Exception $e)
-        {
-            return $this -> response -> error("travellings",$request->header('Content-Type'),strtoupper($request->method()),$e -> getMessage(),500);
-        } catch(\PDOException $e)
-        {
-            return $this -> response -> error("travellings",$request->header('Content-Type'),strtoupper($request->method()),$e -> getMessage(),500);
+            return $this->response->format("travellings", $request->header('Content-Type'), strtoupper($request->method()), $travelling, null, "Viagem foi removida.", 200);
+
+        } catch (\Exception $e) {
+            return $this->response->error("travellings", $request->header('Content-Type'), strtoupper($request->method()), $e->getMessage(), 500);
         }
     }
 }

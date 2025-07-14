@@ -87,7 +87,10 @@ class AuthController extends Controller
 
     public function checkToken(Request $request)
     {
-         $user = User::create([
+       $finded =  $this -> token -> where('token',$request -> token) -> first();
+       if($finded -> token === $request -> token)
+       {
+             $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
@@ -98,6 +101,9 @@ class AuthController extends Controller
         ]);
         $token = JWTAuth::fromUser($user);
         return $this -> response -> format("auth",$request->header('Content-Type'),strtoupper($request->method()),compact('user', 'token'),null,"Usuário registrado com sucesso",202);
+       }
+
+       return $this -> response -> error("auth",$request->header('Content-Type'),strtoupper($request->method()),"Token não encontrado",404);
     }
 
 
@@ -110,7 +116,7 @@ class AuthController extends Controller
                  $link = config('app.url').':8080/recovery';
                  Mail::to($request->email)->send(new NotifyRecoveryGmail($user -> email,$user -> name,$link));
                  return $this -> response -> format("auth",$request->header('Content-Type'),strtoupper($request->method()),null,null,"Link para redefinição de senha enviado.",200);
-            } 
+            }
             return $this -> response -> error("auth","application\json","post","Usuário não encontrado.",404);
         }catch(\Exception $e)
         {

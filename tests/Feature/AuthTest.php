@@ -11,7 +11,7 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AuthTest extends TestCase
 {
-    use RefreshDatabase;
+    // use RefreshDatabase;
 
     public function test_register()
     {
@@ -20,7 +20,8 @@ class AuthTest extends TestCase
         $response = $this->postJson('/api/auth/register', [
             'name' => 'Teste',
             'email' => 'teste@email.com',
-            'password' => '123456'
+            'password' => '123456',
+            'access' => 1
         ]);
 
         $response->assertStatus(202);
