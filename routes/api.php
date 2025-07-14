@@ -40,6 +40,7 @@ Route::prefix('auth')->group(function () {
         Route::post('/login', 'login');
         Route::post('/check','checkToken');
         Route::post('/recovery','recovery');
+        Route::put('/change-password','changePassword');
     });
 });
 

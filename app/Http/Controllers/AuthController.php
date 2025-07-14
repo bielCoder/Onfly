@@ -87,23 +87,33 @@ class AuthController extends Controller
 
     public function checkToken(Request $request)
     {
-       $finded =  $this -> token -> where('token',$request -> token) -> first();
-       if($finded -> token === $request -> token)
-       {
-             $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'access' => $request -> access
-        ]);
-        $this -> token -> where('token',$request -> token) -> update([
-            "confirmed" => true
-        ]);
-        $token = JWTAuth::fromUser($user);
-        return $this -> response -> format("auth",$request->header('Content-Type'),strtoupper($request->method()),compact('user', 'token'),null,"Usuário registrado com sucesso",202);
-       }
+        try {
+            $finded =  $this -> token -> where('token',$request -> token) -> first();
+            if($finded)
+            {
+                    $user = User::create([
+                    'name' => $request->name,
+                    'email' => $request->email,
+                    'password' => Hash::make($request->password),
+                    'access' => $request -> access
+                ]);
+                $this -> token -> where('token',$request -> token) -> update([
+                    "confirmed" => true
+                ]);
+                $token = JWTAuth::fromUser($user);
+                return $this -> response -> format("auth",$request->header('Content-Type'),strtoupper($request->method()),compact('user', 'token'),null,"Usuário registrado com sucesso",202);
+            }
 
-       return $this -> response -> error("auth",$request->header('Content-Type'),strtoupper($request->method()),"Token não encontrado",404);
+            return $this -> response -> error("auth",$request->header('Content-Type'),strtoupper($request->method()),"Token não encontrado",404);
+        } catch(\Exception $e)
+        {
+            return $this -> response -> error("auth",$request->header('Content-Type'),strtoupper($request->method()),$e -> getMessage(),500);
+        } catch(\PDOException $e)
+        {
+            return $this -> response -> error("auth",$request->header('Content-Type'),strtoupper($request->method()),$e -> getMessage(),500);
+        }
+
+
     }
 
 
@@ -113,7 +123,7 @@ class AuthController extends Controller
             $user = $this -> users -> where('email',$request -> email)->first();
             if($user)
             {
-                 $link = config('app.url').':8080/recovery';
+                 $link = config('app.url').':8080/recovery/'.$request -> email;
                  Mail::to($request->email)->send(new NotifyRecoveryGmail($user -> email,$user -> name,$link));
                  return $this -> response -> format("auth",$request->header('Content-Type'),strtoupper($request->method()),null,null,"Link para redefinição de senha enviado.",200);
             }
@@ -126,6 +136,24 @@ class AuthController extends Controller
             return $this -> response -> error("auth",$request->header('Content-Type'),strtoupper($request->method()),$e -> getMessage(),500);
         }
     }
+
+    public function changePassword(Request $request)
+    {
+        try {
+            $this -> users -> where('email',$request -> email) -> update([
+                "password" => Hash::make($request -> password)
+            ]);
+             return $this -> response -> format("auth",$request->header('Content-Type'),strtoupper($request->method()),null,null,"Sua senha foi alterada com sucesso.",200);
+        }catch(\Exception $e)
+        {
+            return $this -> response -> error("auth",$request->header('Content-Type'),strtoupper($request->method()),$e -> getMessage(),500);
+        } catch(\PDOException $e)
+        {
+            return $this -> response -> error("auth",$request->header('Content-Type'),strtoupper($request->method()),$e -> getMessage(),500);
+        }
+
+    }
+
 
 
 }
