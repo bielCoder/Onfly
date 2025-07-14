@@ -34,7 +34,7 @@ class NotifyTokenGmail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            from: new Address('gabrielhenrique9253@gmail.com', 'Onfly'),
+            from: new Address(env("MAIL_FROM_ADDRESS"), 'Onfly'),
             subject: 'Token de Acesso ao Sistema',
         );
     }

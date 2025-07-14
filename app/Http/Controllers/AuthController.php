@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\{User,Token};
 use App\Classes\Utilities\AuthCode;
+use App\Mail\NotifyRecoveryGmail;
 use App\Mail\NotifyTokenGmail;
 use Illuminate\Support\Facades\Hash;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -18,12 +19,14 @@ class AuthController extends Controller
     private $response;
     private $authCode;
     private $token;
+    private $users;
 
-    public function __construct(Response $response, AuthCode $authCode, Token $token)
+    public function __construct(Response $response, AuthCode $authCode, Token $token, User $users)
     {
         $this -> response = $response;
         $this -> authCode = $authCode;
         $this -> token = $token;
+        $this -> users = $users;
     }
 
     public function register(AuthRequest $request)
@@ -96,5 +99,27 @@ class AuthController extends Controller
         $token = JWTAuth::fromUser($user);
         return $this -> response -> format("auth",$request->header('Content-Type'),strtoupper($request->method()),compact('user', 'token'),null,"Usuário registrado com sucesso",202);
     }
+
+
+    public function recovery(Request $request)
+    {
+        try {
+            $user = $this -> users -> where('email',$request -> email)->first();
+            if($user)
+            {
+                 $link = config('app.url').':8080/recovery';
+                 Mail::to($request->email)->send(new NotifyRecoveryGmail($user -> email,$user -> name,$link));
+                 return $this -> response -> format("auth",$request->header('Content-Type'),strtoupper($request->method()),null,null,"Link para redefinição de senha enviado.",200);
+            } 
+            return $this -> response -> error("auth","application\json","post","Usuário não encontrado.",404);
+        }catch(\Exception $e)
+        {
+            return $this -> response -> error("auth",$request->header('Content-Type'),strtoupper($request->method()),$e -> getMessage(),500);
+        } catch(\PDOException $e)
+        {
+            return $this -> response -> error("auth",$request->header('Content-Type'),strtoupper($request->method()),$e -> getMessage(),500);
+        }
+    }
+
 
 }

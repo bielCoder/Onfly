@@ -39,6 +39,7 @@ Route::prefix('auth')->group(function () {
         Route::post('/register', 'register');
         Route::post('/login', 'login');
         Route::post('/check','checkToken');
+        Route::post('/recovery','recovery');
     });
 });
 

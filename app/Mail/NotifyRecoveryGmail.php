@@ -7,36 +7,35 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
-use Illuminate\Mail\Mailables\Address;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Mail\Mailables\Address;
 
-class NotifyGmail extends Mailable
+class NotifyRecoveryGmail extends Mailable
 {
     use Queueable, SerializesModels;
+
+    private $email;
+    private $link;
+    private $name;
 
     /**
      * Create a new message instance.
      */
-
-     private $email;
-     private $status;
-     private $name;
-
-    public function __construct($email, $status, $name)
+    public function __construct($email, $name,$link)
     {
         $this -> email = $email;
-        $this -> status = $status;
         $this -> name = $name;
+        $this -> link = $link;
     }
 
     /**
      * Get the message envelope.
      */
-    public function envelope(): Envelope
+     public function envelope(): Envelope
     {
         return new Envelope(
-            from: new Address(env("MAIL_FROM_ADDRESS"), 'Onfly'),
-            subject: 'Análise do pedido de vôo',
+            from: new Address('gabrielhenrique9253@gmail.com', 'Onfly'),
+            subject: 'Recuperação de Senha',
         );
     }
 
@@ -46,8 +45,8 @@ class NotifyGmail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'approve',
-            with:['status' => $this -> status, 'name' => $this -> name]
+            view: 'recovery',
+            with:['name' => $this -> name,'link' => $this -> link]
         );
     }
 
