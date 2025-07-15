@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Classes\Utilities\Response;
-use App\Http\Requests\AuthRequest;
+use App\Http\Requests\{AuthLoginRequest,AuthRegisterRequest};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\{User,Token};
@@ -29,7 +29,7 @@ class AuthController extends Controller
         $this -> users = $users;
     }
 
-    public function register(AuthRequest $request)
+    public function register(AuthRegisterRequest $request)
     {
 
 
@@ -52,7 +52,7 @@ class AuthController extends Controller
 
     }
 
-    public function login(Request $request)
+    public function login(AuthLoginRequest $request)
     {
         $credentials = $request->only('email', 'password');
 
