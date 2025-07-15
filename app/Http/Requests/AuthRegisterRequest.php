@@ -30,6 +30,7 @@ class AuthRegisterRequest extends FormRequest
         return [
             'required' => '* campo obrigatório.',
             'email' => '* campo aceita apenas e-mail.',
+            'unique' => "* Usuário já existente."
         ];
     }
 }
